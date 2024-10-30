@@ -49,7 +49,7 @@ public class _02_ForEach_Loop {
         System.out.println("-----ForEach-----int--");
 
         int [] arrYears = {2024,2017,2022,2012,2014};
-        
+
         for(int year : arrYears){
             System.out.println(year);
         }
