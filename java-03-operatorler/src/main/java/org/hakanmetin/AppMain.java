@@ -78,6 +78,6 @@ public class AppMain {
 
 
         System.out.println("Modulo: " + (zahl2 % zahl1)); //ohne Klammer geht auch, aber mit Klammer schöner
-        
+
     }
 }
