@@ -2,7 +2,7 @@ package org.hakanmetin;
 
 import lombok.*;
 
-
+//Annotation
 @Getter
 @Setter
 @ToString
@@ -18,7 +18,7 @@ public class Personel {
     private int sicilNo;
     private String mezuniyet;
     private String adress;
-    private short maas;
+    private float maas;
     private boolean medeniDurumu;
 
 }
