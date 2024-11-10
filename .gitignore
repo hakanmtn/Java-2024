@@ -71,3 +71,13 @@ hs_err_pid*
 replay_pid*
 .DS_Store
 .DS_Store?
+*.gradle
+*.bat
+java-17-generics/gradlew
+*.md
+README.md
+*.jar
+java-17-generics/gradle/wrapper/gradle-wrapper.jar
+*.properties
+*.jar
+java-17-generics/gradle/wrapper/gradle-wrapper.jar
