@@ -26,5 +26,11 @@ CREATE TABLE my_company_db.products
 ALTER TABLE IF EXISTS my_company_db.products
     OWNER to postgres;
 
--- MUSTERILERI LISTELE
-SELECT * FROM my_company_db.CUSTOMERS;
+-- Müsteri tablosuna kayitlar eklendi
+INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Hakan', 'Metin');
+INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Natalie', 'Weiss');
+INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Martin', 'Lol');
+
+
+-- MUSTERILERI LISTELE GÖSTER
+SELECT * FROM my_company_db.customers;

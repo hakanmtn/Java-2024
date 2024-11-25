@@ -27,5 +27,12 @@ ALTER TABLE `my_company_db`.`products`
 -- DROP DATABASE --> Database(Schema yi) i siler (Veritabanini)
 -- DROP DATABASE `my_company_db`;
 
+-- Müsteri tablosuna kayitlar eklendi
+INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`, `LAST_NAME`) VALUES ('Hakan', 'Metin');
+INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`, `LAST_NAME`) VALUES ('Natalie', 'Weiss');
+INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`, `LAST_NAME`) VALUES ('Martin', 'Lol');
+
+
 -- MUSTERILERI LISTELE
 SELECT * FROM my_company_db.CUSTOMERS;
+
