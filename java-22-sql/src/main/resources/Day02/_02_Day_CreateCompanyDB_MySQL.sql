@@ -321,3 +321,11 @@ SET
 WHERE CUSTOMER_ID = 3;
 
 select * from CUSTOMERS;
+
+UPDATE my_company_db.CUSTOMERS
+SET
+    FIRST_NAME = 'Hakan',
+    LAST_NAME = 'Metin'
+WHERE COUNTRY = 'PL';
+
+select * from CUSTOMERS;
