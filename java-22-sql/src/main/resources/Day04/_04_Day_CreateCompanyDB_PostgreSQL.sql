@@ -185,3 +185,73 @@ FROM my_company_db.customers c
          FULL JOIN my_company_db.orders o --FULL JOIN/ FULL OUTER JOIN -->  SAME
                    on c."CUSTOMER_ID" = o."CUSTOMER_ID"
 WHERE c."CUSTOMER_ID" is null or o."CUSTOMER_ID" is null;
+
+
+-- VIEW LER
+-- Dikkat edilmesi gereken nokta burada kesinlikle sütun isimleri cakismamali, yoksa view olusmuyor, hata veriyor
+-- Büyük sorgulari biz viewlerle sadelestiriyoruz.
+CREATE VIEW contact AS
+SELECT
+    "FIRST_NAME",
+    "LAST_NAME",
+    "EMAIL"
+FROM customers;
+
+SELECT * FROM contact;
+
+-- kesisen ORTAK KAYITLAR / INNER JOIN ILE VIEW
+CREATE VIEW KESISEN_ORTAK_KAYITLAR AS  -- Sütunlarda cakisma olmamasina dikkat etmemiz lazim.
+SELECT C."CUSTOMER_ID" c_cusid, c."FIRST_NAME", c."LAST_NAME" , o."CUSTOMER_ID" o_cusid, o."ORDER_BRANCH"
+FROM my_company_db.customers C -- Soldaki Tablo
+         JOIN my_company_db.orders O  --Sagdaki Tablo   INNER JOIN - VARSAYILAN JOIN dir.
+              ON C."CUSTOMER_ID" = O."CUSTOMER_ID";
+
+select * from KESISEN_ORTAK_KAYITLAR;
+
+-- LEFT JOIN ILE
+CREATE VIEW LEFT_JOIN_CUSTOMER_ORDER AS
+Select C."CUSTOMER_ID" c_cusid, c."FIRST_NAME", c."LAST_NAME" , o."CUSTOMER_ID" o_cusid, o."ORDER_BRANCH"
+FROM my_company_db.customers c
+         left join my_company_db.orders o
+                   on c."CUSTOMER_ID" = o."CUSTOMER_ID"
+where o."CUSTOMER_ID" is null;
+
+select * from LEFT_JOIN_CUSTOMER_ORDER;
+
+-- RIGHT JOIN ILE VIEW
+-- isimlendirmelerde GET VEYA VIEW ÖN KELIMESI KULLANMAK IYIDIR
+CREATE VIEW GET_RIGHT_JOIN_CUSTOMER_ORDER AS
+SELECT cus."CUSTOMER_ID" c_cusid, cus."FIRST_NAME", cus."LAST_NAME", ord."CUSTOMER_ID" o_cusid, ord."ORDER_BRANCH"
+FROM customers cus
+right join orders ord
+on cus."CUSTOMER_ID" = ord."CUSTOMER_ID";
+
+select * from GET_RIGHT_JOIN_CUSTOMER_ORDER;
+
+
+-- LEFT JOIN ILE view get
+CREATE VIEW GET_LEFT_JOIN_CUSTOMER_ORDER AS
+Select C."CUSTOMER_ID" c_cusid, c."FIRST_NAME", c."LAST_NAME" , o."CUSTOMER_ID" o_cusid, o."ORDER_BRANCH"
+FROM my_company_db.customers c
+         left join my_company_db.orders o
+                   on c."CUSTOMER_ID" = o."CUSTOMER_ID"
+where o."CUSTOMER_ID" is null;
+
+select * from LEFT_JOIN_CUSTOMER_ORDER;
+
+-- INDEX HIZLI ARAMA YAPMAK ICINDIR
+-- HER SEYE INDEK VERILMEZ SADCE EN COK KULLANDIGIMIZ KOLONA GÖRE, YOKSA YAVASLAR
+SELECT * FROM customers;
+
+-- örnegin müsterilerin mailini göre yapiyorsak.
+-- Indexi bir dogrudan calistiriyorsun, sonra arkada calisiyor.
+-- COk sik vveri girisi olan tablolarda da kulanilmaz
+-- Arsivle ilgili tablolarda kullanilabilir.
+
+CREATE INDEX IDX_CUSTOMERS_EMAIL
+ON customers ("EMAIL");
+
+SELECT * FROM customers
+where "EMAIL" = 'klanegranrr@github.io'; -- cift tirnak degil, tek tirnak olmak zorunda
+
+DROP INDEX IDX_CUSTOMERS_EMAIL;
