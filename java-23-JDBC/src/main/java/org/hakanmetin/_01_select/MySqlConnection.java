@@ -1,8 +1,8 @@
-package org.hakanmetin;
+package org.hakanmetin._01_select;
 
 import java.sql.*;
 
-public class MyPostgreSqlConnection
+public class MySqlConnection
 {
     public static void main( String[] args )
     {
@@ -19,15 +19,15 @@ public class MyPostgreSqlConnection
         // Hata meydana gelebilir, veri tabanina baglanirken
 
         try{
-            connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
-                                                        "postgres", "HAkan.01");  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mycompanydb",
+                                                        "root", "HAkan.01");  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
 
             statement = connection.createStatement(); // Statement olusturmamiz lazim
 
             String sql1 = "SELECT * FROM musteriler";
             String sql2 = "SELECT * FROM musteriler WHERE musteri_yasi >25";
 
-            resultSet =  statement.executeQuery(sql2);
+            resultSet =  statement.executeQuery(sql1);
 
 
             while(resultSet.next()){
