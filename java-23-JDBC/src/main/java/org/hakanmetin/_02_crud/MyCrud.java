@@ -15,8 +15,6 @@ public class MyCrud {
     private final String DB_USER = "postgres";
     private final String DB_PASSWORD = "HAkan.01";
 
-    private final String SQL_GET_ALL_CLIENT = "SELECT * FROM musteriler";
-    private final String SQL_GET_ALL_CLIENT_OLDER_THAN_25 = "SELECT * FROM musteriler WHERE musteri_yasi >25";
 
 
     private boolean isOpenConnection() {
@@ -33,10 +31,8 @@ public class MyCrud {
     }
 
     private boolean isCloseConnection() {
-        if (resultSet != null ||preparedStatement != null || connection != null) {
+        if (connection != null) {
             try {
-                resultSet.close();
-                preparedStatement.close();
                 connection.close();
                 return true;
             } catch (Exception e) {
@@ -51,12 +47,12 @@ public class MyCrud {
 
 
     // SELECT - READ
-    public void getAllClients() throws SQLException {
+    public void getAllClients(String sql) throws SQLException {
 
 
         if(isOpenConnection()){
             System.out.println("Baglanti acildi.");
-            preparedStatement = connection.prepareStatement(SQL_GET_ALL_CLIENT); // Statement olusturmamiz lazim
+            preparedStatement = connection.prepareStatement(sql); // Statement olusturmamiz lazim
             resultSet =  preparedStatement.executeQuery();
 
             while(resultSet.next()){
@@ -76,14 +72,14 @@ public class MyCrud {
         }
     }
 
-    public void getAllClientsOlderThan25() {
+    public void getAllClientsOlderThan25(String sql) throws SQLException {
 
         try{
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
 
             statement = connection.createStatement(); // Statement olusturmamiz lazim
 
-            resultSet =  statement.executeQuery(SQL_GET_ALL_CLIENT_OLDER_THAN_25);
+            resultSet =  statement.executeQuery(sql);
 
 
             while(resultSet.next()){
@@ -115,5 +111,56 @@ public class MyCrud {
 
         }
 
+    }
+
+    // UPDATE
+
+    public void updateMusteriIdUpdate(String sql) throws SQLException {
+
+
+        if(isOpenConnection()){
+            System.out.println("Baglanti acildi.");
+            preparedStatement = connection.prepareStatement(sql); // Statement olusturmamiz lazim
+            preparedStatement.executeUpdate();
+
+        }
+
+        if(isCloseConnection()){
+            System.out.println("Baglanti kapatildi.");
+
+        }
+    }
+
+
+    //INSERT
+    public void addACustomer(String sql) throws SQLException {
+
+        if(isOpenConnection()){
+            System.out.println("Baglanti acildi.");
+            preparedStatement = connection.prepareStatement(sql); // Statement olusturmamiz lazim
+            preparedStatement.executeUpdate();
+
+        }
+
+        if(isCloseConnection()){
+            System.out.println("Baglanti kapatildi.");
+
+        }
+    }
+
+    //DELETE
+    public void deleteACustomer(String sql) throws SQLException {
+
+        if(isOpenConnection()){
+            System.out.println("Baglanti acildi.");
+            preparedStatement = connection.prepareStatement(sql); // Statement olusturmamiz lazim
+            preparedStatement.executeUpdate();
+
+        }
+
+        if(isCloseConnection()){
+            System.out.println("Baglanti kapatildi.");
+
+        }
     }
 }
