@@ -26,6 +26,7 @@ public class Müdür extends Personel{
         this.makamAraci = makamAraci;
     }
 
+
     public Müdür() {
 
     }
