@@ -25,7 +25,8 @@ ALTER TABLE `my_company_db`.`products`
     CHANGE COLUMN `PROD_CODE` `PROD_Code` VARCHAR(45) NULL DEFAULT NULL ;
 
 -- DROP DATABASE --> Database(Schema yi) i siler (Veritabanini)
--- DROP DATABASE `my_company_db`;
+--
+
 
 -- Müsteri tablosuna kayitlar eklendi
 INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`, `LAST_NAME`) VALUES ('Hakan', 'Metin');
