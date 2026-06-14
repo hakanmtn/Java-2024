@@ -1,8 +1,8 @@
--- VERITABANI DB OLUSTURULDU
+-- DATABASE
 CREATE SCHEMA my_company_db
     AUTHORIZATION postgres;
 
--- MUSTERILER TABLOSU OLUSTURULDU
+-- customers Table
 CREATE TABLE my_company_db.customers
 (
     "ID" serial NOT NULL,
@@ -14,10 +14,11 @@ CREATE TABLE my_company_db.customers
 ALTER TABLE IF EXISTS my_company_db.customers
     OWNER to postgres;
 
--- PRODUCT TABLOSU OLUSTURULDU
+
+--products Table
 CREATE TABLE my_company_db.products
 (
-    "ID" smallserial NOT NULL,
+    "ID" bigserial NOT NULL,
     "PROD_NAME" character varying(200),
     "PROD_CODE" character varying(45),
     PRIMARY KEY ("ID")
@@ -26,11 +27,8 @@ CREATE TABLE my_company_db.products
 ALTER TABLE IF EXISTS my_company_db.products
     OWNER to postgres;
 
--- Müsteri tablosuna kayitlar eklendi
-INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Hakan', 'Metin');
-INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Natalie', 'Weiss');
-INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Martin', 'Lol');
-
-
--- MUSTERILERI LISTELE GÖSTER
 SELECT * FROM my_company_db.customers;
+
+INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Natalie', 'Weiss');
+INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Hakan', 'Metin');
+INSERT INTO my_company_db.CUSTOMERS ("FIRST_NAME", "LAST_NAME") VALUES ('Ahmet' , 'Metin');
