@@ -1,0 +1,40 @@
+ALTER TABLE `my_company_db`.`CUSTOMERS`
+    ADD COLUMN `AGE` TINYINT(3) NULL AFTER `LAST_NAME`,
+    ADD COLUMN `COUNTRY` VARCHAR(65) NULL AFTER `AGE`,
+    CHANGE COLUMN `CUSTOMER_ID` `CUSTOMER_ID` INT NOT NULL AUTO_INCREMENT ;
+
+SELECT * FROM my_company_db.CUSTOMERS;
+
+UPDATE `my_company_db`.`CUSTOMERS` SET `AGE` = '32', `COUNTRY` = 'DE' WHERE (`CUSTOMER_ID` = '1');
+UPDATE `my_company_db`.`CUSTOMERS` SET `AGE` = '31', `COUNTRY` = 'TR' WHERE (`CUSTOMER_ID` = '2');
+UPDATE `my_company_db`.`CUSTOMERS` SET `AGE` = '29', `COUNTRY` = 'USA' WHERE (`CUSTOMER_ID` = '3');
+UPDATE `my_company_db`.`CUSTOMERS` SET `AGE` = '28', `COUNTRY` = 'DE' WHERE (`CUSTOMER_ID` = '4');
+UPDATE `my_company_db`.`CUSTOMERS` SET `AGE` = '22', `COUNTRY` = 'FR' WHERE (`CUSTOMER_ID` = '5');
+
+SELECT FIRST_NAME, LAST_NAME FROM my_company_db.CUSTOMERS;
+
+
+-- Ulkesi TR olanlar
+
+Select * from my_company_db.CUSTOMERS
+where COUNTRY = 'TR';
+
+
+Select * from CUSTOMERS
+where COUNTRY = 'TR' OR LAST_NAME = 'Weiss';
+
+-- Tabloya yeni kolonlar eklendi:
+ALTER TABLE `my_company_db`.`CUSTOMERS`
+    ADD COLUMN `EMAIL` VARCHAR(100) NULL AFTER `COUNTRY`,
+    ADD COLUMN `GENDER` VARCHAR(1) NULL AFTER `EMAIL`;
+
+Select * from CUSTOMERS
+
+insert into CUSTOMERS (FIRST_NAME, LAST_NAME, AGE, COUNTRY, EMAIL, GENDER) values ('Titus', 'Roll', 83, 'CN', 'troll0@surveymonkey.com', 'M');
+
+SELECT * FROM  CUSTOMERS
+WHERE COUNTRY = 'DE';
+
+
+SELECT * FROM  CUSTOMERS
+WHERE COUNTRY = 'CA' AND GENDER = 'F';

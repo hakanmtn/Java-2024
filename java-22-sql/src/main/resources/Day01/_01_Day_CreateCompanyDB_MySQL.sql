@@ -26,4 +26,3 @@ INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`, `LAST_NAME`) VALUES ('Nat
 INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`, `LAST_NAME`) VALUES ('Hakan', 'Metin');
 INSERT INTO `my_company_db`.`CUSTOMERS` (`FIRST_NAME`) VALUES ('Ahmet');
 
-  
