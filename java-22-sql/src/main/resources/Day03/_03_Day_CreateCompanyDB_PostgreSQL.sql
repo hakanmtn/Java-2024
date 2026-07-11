@@ -29,3 +29,39 @@ SELECT * FROM customers
 where "FIRST_NAME" like '%er';
 
 
+-- MAx yasi en büyük ve en MIN en kücük olan müsteri
+
+SELECT MAX("AGE") , MIN("AGE") from customers;
+
+-- Yasi 22'den büyük olanlar
+SELECT * FROM customers
+where "AGE" > 22;
+
+-- en kücük kisinin yasini bul ve kolonlariyla birlikte göster // esneklik sagliyor ic ice
+
+SELECT * FROM customers
+where "AGE" = (select min("AGE") from customers) and "COUNTRY" = 'CZ';
+
+-- baska bir versiyonu
+select * from customers
+order by "AGE" LIMIT 1 ;
+
+-- kac tane farkli ülke var
+
+SELECT count(distinct "COUNTRY") FROM CUSTOMERS;
+
+-- HER ÜLKEDEN KAC KISI VAR
+SELECT "COUNTRY" , count(*) from customers
+group by "COUNTRY";
+
+-- HER ÜLKEDEN KAC KISI VAR büyükten kücüge dogru sirala
+SELECT "COUNTRY" , count(*) from customers
+group by "COUNTRY"
+order by count(*) desc;
+
+
+-- icinde e gecenleri getir ama h gecenleri getirme
+SELECT * from customers
+where "FIRST_NAME" like '%e%' AND "FIRST_NAME" NOT like '%h%';
+
+--
