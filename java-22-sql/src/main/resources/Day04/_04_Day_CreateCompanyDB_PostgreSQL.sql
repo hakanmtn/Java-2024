@@ -118,3 +118,21 @@ FROM customers c  -- soldaki tablo
               ON c."CUSTOMER_ID" = o."CUSTOMER_ID";
 
 SELECT * FROM VIEW_INNER_JOIN;
+
+
+--INDEX (BINARY Tree yapisinda saklar) sorgu performansini arttirmak icin kullanilir. wie inhaltsverzeichnis eines buchs
+-- 2'LI TABLOLARDA DAHA EFEKTIV
+CREATE INDEX INDEX_CUSTOMER_EMAIL ON customers("EMAIL");
+-- index i dogrudan cagirmiyoruz
+
+
+SELECT * FROM customers
+WHERE "EMAIL" = 'lmorcomberi@cbc.ca';
+
+
+drop index INDEX_CUSTOMER_EMAIL;
+
+--2'LI TABLOLARDA DAHA EFEKTIV
+CREATE INDEX INDEX_CUSTOMER_ID ON orders("CUSTOMER_ID");
+drop index INDEX_CUSTOMER_ID;
+--
