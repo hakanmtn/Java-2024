@@ -1,8 +1,8 @@
-package org.hakanmetin;
+package org.hakanmetin._01_select;
 
 import java.sql.*;
 
-public class MyPostgreSQLConnection {
+public class MyMySQLConnection {
 
     public static void main(String[] args) {
 
@@ -12,16 +12,17 @@ public class MyPostgreSQLConnection {
 
         try{  //Veri tabani olmayabilir, o yüzden TRY-CATCH
             //Baglanti icin
-            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
-                                               "postgres",
-                                               "HAkan.01"); //Hangi veri tabanina gideceksek
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/my_company_db",
+                                               "root",
+                                               "Hakan.01"); //Hangi veri tabanina gideceksek
 
             statement = conn.createStatement();  //bu baglanti üzerinden sorgu olusturabiliriz
 
             String sql1 = "SELECT * FROM my_company_db.customers" ;
 
-            //PostgreSQL wandelt Spaltennamen ohne Anführungszeichen automatisch in Kleinbuchstaben um.
-            String sql2 = "SELECT * FROM my_company_db.customers" + " WHERE \"AGE\"  > 25";
+            // MySQL behandelt Spaltennamen normalerweise unabhängig
+            // von Groß- und Kleinschreibung.
+            String sql2 = "SELECT * FROM my_company_db.CUSTOMERS" + " WHERE AGE  > 25";
 
             //gelen sonuclari buraya kaydediyorum
             resultSet = statement.executeQuery(sql2);
