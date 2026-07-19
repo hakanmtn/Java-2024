@@ -16,20 +16,6 @@ public class MyCrud {
     private final String DB_USER = "postgres";
     private final String DB_PASSWORD = "HAkan.01";
 
-    private final String SQL_ALL_CUSTOMERS = "SELECT * FROM my_company_db.customers" ;
-    private final String SQL_GREATER_THAN_25 = "SELECT * FROM my_company_db.customers" + " WHERE \"AGE\"  > 25";
-    private static final String SQL_CUSTOMER_AGE_UPDATE = "UPDATE my_company_db.customers " +
-                                                            "SET " + " \"FIRST_NAME\" = 'Mason', "
-                                                            + " \"LAST_NAME\" = 'Greenwood', "
-                                                            + " \"AGE\" = 26 ,"
-                                                            + "  \"COUNTRY\"  = 'EN' "
-                                                            + " WHERE \"CUSTOMER_ID\"  = 10" ;
-
-    private final String SQL_CUSTOMER_ADD_NEW = "INSERT INTO my_company_db.customers( " +
-            " \"FIRST_NAME\", \"LAST_NAME\", \"AGE\", \"COUNTRY\", \"EMAIL\", \"GENDER\") " +
-            " VALUES ('Nilson', 'Ake', 27, 'EN', 'n.ake@ake.com', 'M')" ;
-
-    private final String SQL_CUSTOMER_DELETE = "DELETE FROM my_company_db.customers WHERE \"CUSTOMER_ID\" = 105";
 
     private boolean isOpenConnection() {
         try{
@@ -57,7 +43,7 @@ public class MyCrud {
     }
 
     // SELECT - READ
-    public void getFromTableAll() throws SQLException {
+        public void getFromTableAll(String SQL_ALL_CUSTOMERS) throws SQLException {
 
             if (isOpenConnection()) {
                 System.out.println("Connecting to database...");
@@ -87,7 +73,7 @@ public class MyCrud {
 
 
     // ekstra düzenlemedik
-    public void getFromTableGretaterThan25 () {
+    public void getFromTableGretaterThan25 (String SQL_GREATER_THAN_25) {
 
         try{
 
@@ -127,7 +113,7 @@ public class MyCrud {
 
     // UPDATE
 
-    public void updateCustomerFromID() throws SQLException {
+    public void updateCustomerFromID(String SQL_CUSTOMER_AGE_UPDATE) throws SQLException {
 
         if (isOpenConnection()) {
             System.out.println("Connecting to database...");
@@ -144,7 +130,7 @@ public class MyCrud {
     }
 
     //INSERT - CREATE
-    public void addNewCustomer() throws SQLException {
+    public void addNewCustomer(String SQL_CUSTOMER_ADD_NEW) throws SQLException {
         if (isOpenConnection()) {
             System.out.println("Connecting to database...");
             statement = conn.prepareStatement(SQL_CUSTOMER_ADD_NEW);
@@ -155,7 +141,7 @@ public class MyCrud {
 
         }
     }
-    public void deleteCustomerFromID() throws SQLException {
+    public void deleteCustomerFromID(String SQL_CUSTOMER_DELETE) throws SQLException {
         if (isOpenConnection()) {
             System.out.println("Connecting to database...");
             statement = conn.prepareStatement(SQL_CUSTOMER_DELETE);
