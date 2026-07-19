@@ -48,7 +48,7 @@ public class AppMain {
 }
 
 /*
-*NOTIZEN für CRUD Thema 
+*NOTIZEN für CRUD Thema
 *
 *
 *Warum braucht man CRUD?
