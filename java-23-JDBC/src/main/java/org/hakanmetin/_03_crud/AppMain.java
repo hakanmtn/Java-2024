@@ -39,10 +39,10 @@ public class AppMain {
 
 
     // READ - SELECT
-    public String readTheInfosOfCustomer(){
+    public void readTheInfosOfCustomer(){
 
         connection= connectionToDatenbank();
-        String personalInfo = null;
+
 
         try{
 
@@ -54,11 +54,6 @@ public class AppMain {
                         resultSet.getString("last_name") + " " +  resultSet.getString("email") + " " +
                         resultSet.getInt("salary") + " " +  resultSet.getString("position"));
 
-
-
-                personalInfo = resultSet.getString("personel_id") + ' ' + resultSet.getString("first_name")
-                        + ' ' + resultSet.getString("last_name") + ' ' + resultSet.getString("email")
-                        + ' ' + resultSet.getInt("salary") + ' ' + resultSet.getString("position");
             }
 
 
@@ -73,7 +68,6 @@ public class AppMain {
             System.out.println("Fehler beim lesen der Datenbank: " +  e.getMessage());
 
         }
-        return personalInfo;
 
     }
 
@@ -120,7 +114,7 @@ public class AppMain {
             preparedStatement.executeUpdate();
 
         }catch (SQLException e){
-            System.out.println("Fehler beim Hinzufügen der Datenbank: " +  e.getMessage());
+            System.out.println("Fehler beim Löschen der Datenbank: " +  e.getMessage());
         }
     }
 
@@ -144,7 +138,7 @@ public class AppMain {
             preparedStatement.executeUpdate();
 
         }catch (SQLException e){
-            System.out.println("Fehler beim Hinzufügen der Datenbank: " +  e.getMessage());
+            System.out.println("Fehler beim Update der Datenbank: " +  e.getMessage());
         }
 
         // UPDATE `myCompany`.`personel`
