@@ -3,9 +3,43 @@ package org.hakanmetin.util;
 //Javayi Datenbankla bagliyor
 
 import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+
+
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.service.ServiceRegistry;
+
+public final class HibernateUtil {
+
+    private static final SessionFactory SESSION_FACTORY =
+            createSessionFactory();
+
+    private HibernateUtil() {
+    }
+
+    private static SessionFactory createSessionFactory() {
+        try {
+            return new Configuration()
+                    .configure()
+                    .buildSessionFactory();
+        } catch (Exception exception) {
+            throw new ExceptionInInitializerError(exception);
+        }
+    }
+
+    public static SessionFactory getSessionFactory() {
+        return SESSION_FACTORY;
+    }
+
+    public static void shutdown() {
+        SESSION_FACTORY.close();
+    }
+}
+
+
+
+
+/*
 
 public class HibernateUtil {
 
@@ -31,3 +65,4 @@ public class HibernateUtil {
     }
 
 }
+*/

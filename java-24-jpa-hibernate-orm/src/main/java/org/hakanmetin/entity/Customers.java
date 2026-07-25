@@ -12,15 +12,14 @@ public class Customers {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int customer_id;
+    private Integer customer_id;
     private String first_name;
     private String last_surname;
 
     public Customers() {
     }
 
-    public Customers(int customer_id, String first_name, String last_surname) {
-        this.customer_id = customer_id;
+    public Customers(String first_name, String last_surname) {
         this.first_name = first_name;
         this.last_surname = last_surname;
     }
