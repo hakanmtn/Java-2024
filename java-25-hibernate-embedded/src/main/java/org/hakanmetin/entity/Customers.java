@@ -1,8 +1,9 @@
 package org.hakanmetin.entity;
 
 import jakarta.persistence.*;
+import java.util.Date;
 
-//POJO Model (Plain Old Java Object) ist ein einfaches Java-Objekt
+
 
 //Entity nin bir tablo karsiligi vardir.
 
@@ -21,6 +22,16 @@ public class Customers {
     @Column(name = "LAST_NAME")
     private String last_surname;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "DATE_CREATE")
+    private Date createDate;
+
+    /*
+    @Column(name = "ADDRESS")
+    private String address;
+    */
+    @Embedded
+    public Address address;
     public Customers() {
     }
 
@@ -28,12 +39,11 @@ public class Customers {
         this.first_name = first_name;
         this.last_surname = last_surname;
     }
-    public int getCustomer_id() {
-        return customer_id;
-    }
 
-    public void setCustomer_id(int customer_id) {
-        this.customer_id = customer_id;
+    public Customers(String first_name, String last_surname, Date createDate) {
+        this.first_name = first_name;
+        this.last_surname = last_surname;
+        this.createDate = createDate;
     }
 
     public String getFirst_name() {
@@ -50,6 +60,22 @@ public class Customers {
 
     public void setLast_surname(String last_surname) {
         this.last_surname = last_surname;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     @Override
