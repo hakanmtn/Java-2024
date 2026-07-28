@@ -1,0 +1,892 @@
+JPA/Hibernate bildet Beziehungen zwischen Java-Objekten auf Beziehungen zwischen Datenbanktabellen ab.
+
+In Java arbeite ich mit Objekten, In der relationalen Datenbank gibt es dagegen keine Objekt-Referenzen.Dort werden
+Beziehungen hauptsächlich über Fremdschlüssel hergestellt. Hibernate übersetzt zwischen diesen beiden Welten.
+
+1. JPA und Hibernate unterscheiden
+Die Annotationen wie:
+@Entity
+@OneToOne
+@OneToMany
+@ManyToOne
+@ManyToMany
+@JoinColumn
+
+gehören größtenteils zu Jakarta Persistence, also JPA:
+import jakarta.persistence.*;
+
+Hibernate ist eine Implementierung dieser Spezifikation.
+Vereinfacht:
+JPA       = Regeln und Schnittstellen
+Hibernate = konkrete Umsetzung dieser Regeln
+
+Man programmiert meistens gegen JPA-Annotationen, während Hibernate im Hintergrund SQL erzeugt und ausführt.
+
+2. Was bedeutet Kardinalität?
+Die Kardinalität beschreibt, wie viele Datensätze miteinander verbunden sein können.
+Es gibt vier wichtige Beziehungsarten:
+@OneToOne
+@OneToMany
+@ManyToOne
+@ManyToMany
+
+Die Bezeichnungen liest man immer aus Sicht der Klasse, in der die Annotation steht.
+Beispiel:
+
+class Order {
+
+    @ManyToOne
+    private Customer customer;
+}
+
+Das bedeutet:
+Viele Bestellungen können zu einem Kunden gehören.
+
+3. @OneToOne
+Bedeutung
+Ein Objekt A gehört zu höchstens einem Objekt B, und Objekt B gehört zu höchstens einem Objekt A.
+Beispiele:
+
+Person       ↔ Passport
+Customer     ↔ CustomerDetail
+User         ↔ UserProfile
+Employee     ↔ CompanyCar
+
+Bei meinem Beispiel:
+Ein Customer hat ein CustomerDetail.
+Ein CustomerDetail gehört zu einem Customer.
+
+Möglichkeit 1: Normaler Fremdschlüssel mit UNIQUE
+CUSTOMERS
+---------
+CUSTOMER_ID PK
+
+CUSTOMER_DETAILS
+----------------
+DETAIL_ID   PK
+CUSTOMER_ID FK UNIQUE
+UNIQUE ist hier wichtig. Ohne UNIQUE könnten mehrere Detail-Datensätze denselben Kunden referenzieren.
+Dann wäre es in der Datenbank eigentlich eine Many-to-One-Beziehung.
+
+Java:
+
+@Entity
+public class CustomerDetail {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @OneToOne
+    @JoinColumn(
+        name = "CUSTOMER_ID",
+        unique = true,
+        nullable = false
+    )
+    private Customer customer;
+}
+
+Die Tabelle besitzt dann zwei IDs:
+DETAIL_ID
+CUSTOMER_ID
+
+Möglichkeit 2: Gemeinsamer Primärschlüssel mit @MapsId
+Das entspricht meinem Fall.
+
+CUSTOMERS
+---------
+CUSTOMER_ID PK
+
+CUSTOMER_DETAILS
+----------------
+CUSTOMER_ID PK und gleichzeitig FK
+Java:
+@Entity
+public class CustomerDetail {
+
+    @Id
+    @Column(name = "CUSTOMER_ID")
+    private Integer customerId;
+
+    @MapsId
+    @OneToOne
+    @JoinColumn(name = "CUSTOMER_ID")
+    private Customers customer;
+}
+
+Hier sagt @MapsId:
+Verwende die ID des zugehörigen Customers gleichzeitig als ID des CustomerDetail-Objekts.
+Wenn der Kunde die ID 15 bekommt:
+CUSTOMERS.CUSTOMER_ID        = 15
+CUSTOMER_DETAILS.CUSTOMER_ID = 15
+Das ist sinnvoll, wenn CustomerDetail ohne Customer fachlich nicht existieren kann.
+
+4. @ManyToOne
+Das ist eine der häufigsten Beziehungen in Geschäftsanwendungen.
+Bedeutung
+Viele Objekte gehören zu einem Objekt.
+Beispiele:
+Viele Orders gehören zu einem Customer.
+Viele Employees gehören zu einer Department.
+Viele Comments gehören zu einem Post.
+Viele Products gehören zu einer Category.
+
+Datenbank:
+CUSTOMERS
+---------
+CUSTOMER_ID PK
+
+ORDERS
+------
+ORDER_ID    PK
+CUSTOMER_ID FK
+
+Der Fremdschlüssel befindet sich auf der Many-Seite.
+
+Java:
+@Entity
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CUSTOMER_ID", nullable = false)
+    private Customer customer;
+}
+
+Aus Sicht von Order:
+
+Viele Orders → ein Customer
+
+Darum:
+@ManyToOne
+private Customer customer;
+
+Warum liegt der Fremdschlüssel bei Order?
+Jede Bestellung muss wissen, zu welchem Kunden sie gehört.
+
+ORDER_ID | CUSTOMER_ID
+---------|------------
+1        | 10
+2        | 10
+3        | 12
+Kunde 10 hat zwei Bestellungen.
+
+5. @OneToMany
+Bedeutung
+Ein Objekt besitzt oder referenziert viele andere Objekte.
+
+Beispiele:
+Ein Customer hat viele Orders.
+Eine Department hat viele Employees.
+Ein Post hat viele Comments.
+Eine Category hat viele Products
+
+Java:
+@Entity
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Order> orders = new ArrayList<>();
+}
+
+Wichtig:
+
+mappedBy = "customer"
+
+Das verweist auf dieses Feld in Order:
+@ManyToOne
+private Customer customer;
+Die Beziehung sieht zusammen so aus:
+@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    private List<Order> orders = new ArrayList<>();
+}
+@Entity
+public class Order {
+
+    @ManyToOne
+    @JoinColumn(name = "CUSTOMER_ID")
+    private Customer customer;
+}
+
+Wichtige Erkenntnis
+@OneToMany und @ManyToOne sind oft zwei Sichtweisen auf dieselbe Datenbankbeziehung.
+Customer → hat viele Orders       = OneToMany
+Order    → gehört zu einem Customer = ManyToOne
+
+In der Datenbank existiert aber nur ein Fremdschlüssel:
+ORDERS.CUSTOMER_ID
+Es gibt nicht automatisch einen zusätzlichen Fremdschlüssel in CUSTOMERS.
+
+6. Besitzende Seite und mappedBy
+
+Das ist eines der wichtigsten Konzepte bei JPA-Beziehungen.
+
+Eine bidirektionale Beziehung hat zwei Seiten:
+Customer.orders
+Order.customer
+
+Aber nur eine Seite kontrolliert den Fremdschlüssel in der Datenbank.
+
+Diese Seite nennt man:
+Owning Side
+Besitzende Seite
+
+Grundregel
+Die Seite mit @JoinColumn ist normalerweise die besitzende Seite.
+
+Beispiel:
+@Entity
+public class Order {
+
+    @ManyToOne
+    @JoinColumn(name = "CUSTOMER_ID")
+    private Customer customer;
+}
+Order ist die besitzende Seite, weil dort der Fremdschlüssel liegt.
+Die andere Seite verwendet mappedBy:
+@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    private List<Order> orders;
+}
+
+mappedBy = "customer" bedeutet:
+Diese Beziehung wird durch das Feld customer in der Klasse Order verwaltet.
+Sehr wichtig
+mappedBy enthält den Java-Feldnamen, nicht den Namen der Datenbankspalte.
+Richtig:
+mappedBy = "customer"
+Nicht:
+mappedBy = "CUSTOMER_ID"
+
+7. Warum muss man beide Seiten setzen?
+Angenommen, du hast:
+Customer customer = new Customer();
+Order order = new Order();
+
+Du setzt nur:
+customer.getOrders().add(order);
+Dann enthält die Java-Liste zwar die Bestellung, aber die besitzende Seite ist weiterhin nicht gesetzt:
+order.getCustomer() == null
+Da Order.customer die besitzende Seite ist, kann Hibernate den Fremdschlüssel nicht korrekt setzen.
+Deshalb müssen bei bidirektionalen Beziehungen beide Objektseiten synchronisiert werden:
+customer.getOrders().add(order);
+order.setCustomer(customer);
+Besser ist eine Hilfsmethode:
+public void addOrder(Order order) {
+    orders.add(order);
+    order.setCustomer(this);
+}
+
+Verwendung:
+customer.addOrder(order);
+Damit bleiben beide Seiten konsistent.
+Für meine One-to-One-Beziehung:
+public void setCustomerDetail(CustomerDetail detail) {
+    this.customerDetail = detail;
+
+    if (detail != null) {
+        detail.setCustomer(this);
+    }
+}
+Dann genügt:
+customer.setCustomerDetail(detail);
+
+8. Unidirektional und bidirektional
+Unidirektional
+Nur eine Seite kennt die andere.
+@Entity
+public class Order {
+
+    @ManyToOne
+    private Customer customer;
+}
+Order kennt den Kunden, aber Customer besitzt keine Liste von Bestellungen.
+Order → Customer
+Das ist oft vollkommen ausreichend.
+
+Bidirektional
+Beide Seiten kennen sich.
+@Entity
+public class Order {
+
+    @ManyToOne
+    private Customer customer;
+}
+@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    private List<Order> orders;
+}
+Order ↔ Customer
+Wann bidirektional?
+Bidirektional ist sinnvoll, wenn du fachlich regelmäßig in beide Richtungen navigieren möchtest:
+order.getCustomer();
+customer.getOrders();
+Unidirektional ist einfacher, wenn du nur eine Richtung brauchst.
+Mehr Beziehungen bedeuten auch:
+mehr Synchronisierungsaufwand
+komplexere Objektgraphen
+mögliche Probleme bei toString()
+mögliche Probleme bei JSON-Serialisierung
+mehr versehentliche Datenbankabfragen
+Darum sollte nicht jede Beziehung automatisch bidirektional sein.
+
+9. @ManyToMany
+Bedeutung
+Viele Objekte auf Seite A gehören zu vielen Objekten auf Seite B.
+Beispiele:
+Viele Students besuchen viele Courses.
+Viele Users besitzen viele Roles.
+Viele Actors spielen in vielen Movies.
+Viele Products gehören zu vielen Tags.
+Eine direkte Many-to-Many-Beziehung kann nicht nur mit einem Fremdschlüssel abgebildet werden.
+Dafür wird eine Zwischentabelle benötigt.
+STUDENTS
+--------
+STUDENT_ID PK
+
+COURSES
+-------
+COURSE_ID PK
+
+STUDENT_COURSE
+--------------
+STUDENT_ID FK
+COURSE_ID  FK
+
+Java:
+@Entity
+public class Student {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @ManyToMany
+    @JoinTable(
+        name = "STUDENT_COURSE",
+        joinColumns = @JoinColumn(name = "STUDENT_ID"),
+        inverseJoinColumns = @JoinColumn(name = "COURSE_ID")
+    )
+    private Set<Course> courses = new HashSet<>();
+}
+Andere Seite:
+@Entity
+public class Course {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @ManyToMany(mappedBy = "courses")
+    private Set<Student> students = new HashSet<>();
+}
+
+Wann sollte man direkte @ManyToMany vermeiden?
+Sobald die Verbindung eigene Informationen besitzt.
+
+Beispiel:
+Student besucht Course
+Die Beziehung könnte zusätzliche Daten haben:
+Anmeldedatum
+Status
+Note
+Teilnahmegebühr
+
+Dann reicht eine reine Zwischentabelle fachlich nicht mehr. Sie sollte als eigene Entity modelliert werden:
+Student 1 ─── n Enrollment n ─── 1 Course
+@Entity
+public class Enrollment {
+
+    @ManyToOne
+    private Student student;
+
+    @ManyToOne
+    private Course course;
+
+    private LocalDate registrationDate;
+    private String status;
+    private Double grade;
+}
+Statt:
+@ManyToMany
+verwendest du dann zwei @ManyToOne-Beziehungen.
+Das ist in realen Anwendungen häufig die bessere Lösung.
+
+10. @JoinColumn
+
+@JoinColumn beschreibt die Fremdschlüsselspalte.
+
+@ManyToOne
+@JoinColumn(name = "CUSTOMER_ID")
+private Customer customer;
+
+Hibernate versteht:
+Das Feld customer wird über die Spalte CUSTOMER_ID verbunden.
+Weitere wichtige Attribute:
+@JoinColumn(
+    name = "CUSTOMER_ID",
+    nullable = false,
+    unique = true
+)
+
+Bedeutung:
+name       = Name der Fremdschlüsselspalte
+nullable   = Darf die Beziehung null sein?
+unique     = Darf der gleiche Wert mehrfach vorkommen?
+
+Beispiele:
+Für Many-to-One normalerweise:
+@JoinColumn(name = "CUSTOMER_ID", nullable = false)
+Für normales One-to-One häufig:
+@JoinColumn(
+    name = "CUSTOMER_ID",
+    nullable = false,
+    unique = true
+)
+
+11. @JoinTable
+Eine Join-Tabelle wird meistens bei Many-to-Many verwendet.
+
+@ManyToMany
+@JoinTable(
+    name = "USER_ROLE",
+    joinColumns = @JoinColumn(name = "USER_ID"),
+    inverseJoinColumns = @JoinColumn(name = "ROLE_ID")
+)
+private Set<Role> roles;
+
+Bedeutung:
+joinColumns
+beschreibt die Spalte für die aktuelle Entity.
+inverseJoinColumns
+beschreibt die Spalte für die andere Entity.
+Bei User.roles:
+joinColumns        → USER_ID
+inverseJoinColumns → ROLE_ID
+
+12. cascade
+
+Cascade bedeutet:
+Eine Operation auf der Eltern-Entity wird an die verbundene Entity weitergegeben.
+
+Beispiel:
+
+@OneToOne(cascade = CascadeType.ALL)
+private CustomerDetail customerDetail;
+
+Dann kann Folgendes genügen:
+session.persist(customer);
+
+Hibernate persistiert auch customerDetail.
+Wichtige Cascade-Typen
+CascadeType.PERSIST
+@OneToOne(cascade = CascadeType.PERSIST)
+
+Beim Speichern des Elternobjekts wird auch das Kind gespeichert.
+entityManager.persist(customer);
+
+CascadeType.MERGE
+Änderungen an einem getrennten Objektgraphen werden gemeinsam übernommen.
+entityManager.merge(customer);
+
+CascadeType.REMOVE
+Beim Löschen des Elternobjekts wird auch das Kind gelöscht.
+entityManager.remove(customer);
+
+CascadeType.ALL
+Enthält alle Cascade-Operationen:
+cascade = CascadeType.ALL
+
+Wann Cascade verwenden?
+Cascade passt gut, wenn das Kind fachlich zum Lebenszyklus des Elternobjekts gehört.
+Beispiel:
+Customer → CustomerDetail
+Order → OrderPosition
+Post → Comment
+
+Aber Vorsicht bei Beziehungen wie:
+Order → Customer
+Eine Bestellung gehört zwar zu einem Kunden, aber beim Löschen einer Bestellung soll normalerweise nicht der Kunde gelöscht werden.
+Darum ist Folgendes gefährlich:
+@ManyToOne(cascade = CascadeType.REMOVE)
+private Customer customer;
+
+Wenn du eine Bestellung löschst, könnte dadurch auch der Kunde gelöscht werden.
+Typischerweise verwendet man auf einer @ManyToOne-Beziehung nicht REMOVE oder ALL.
+
+13. orphanRemoval
+@OneToMany(
+    mappedBy = "order",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+)
+private List<OrderPosition> positions;
+
+orphanRemoval = true bedeutet:
+Wird ein Kind aus der Beziehung entfernt, wird es auch aus der Datenbank gelöscht.
+
+Beispiel:
+order.getPositions().remove(position);
+Mit orphanRemoval = true erzeugt Hibernate ungefähr:
+
+DELETE FROM ORDER_POSITION
+WHERE POSITION_ID = ?
+
+Ohne orphanRemoval wird nur die Beziehung aufgelöst oder der Fremdschlüssel auf NULL gesetzt,
+sofern das Datenmodell dies erlaubt.
+
+Unterschied zu CascadeType.REMOVE
+CascadeType.REMOVE:
+entityManager.remove(order);
+löscht beim Löschen des Elternobjekts auch dessen Kinder.
+orphanRemoval = true:
+order.getPositions().remove(position);
+löscht ein Kind, wenn es aus der Collection entfernt wird.
+
+14. FetchType.LAZY und FetchType.EAGER
+
+Fetch beschreibt, wann verbundene Daten geladen werden.
+
+EAGER
+Die Beziehung soll sofort mitgeladen werden.
+@ManyToOne(fetch = FetchType.EAGER)
+private Customer customer;
+Beim Laden der Bestellung wird auch der Kunde geladen.
+
+LAZY
+Die Beziehung wird zunächst nicht vollständig geladen.
+@ManyToOne(fetch = FetchType.LAZY)
+private Customer customer;
+Erst bei Zugriff:
+order.getCustomer().getFirstName();
+kann Hibernate den Kunden nachladen.
+
+Typische Empfehlung
+Beziehungen eher bewusst und möglichst LAZY laden:
+@ManyToOne(fetch = FetchType.LAZY)
+@OneToOne(fetch = FetchType.LAZY)
+@OneToMany(fetch = FetchType.LAZY)
+@ManyToMany(fetch = FetchType.LAZY)
+
+Denn EAGER kann dazu führen, dass sehr große Objektgraphen ungewollt geladen werden.
+Beispiel:
+Customer
+→ Orders
+→ OrderPositions
+→ Products
+→ Categories
+→ Suppliers
+Eine einfache Customer-Abfrage könnte dann sehr viele Daten laden.
+
+15. LazyInitializationException
+
+Ein klassisches Hibernate-Problem:
+Customer customer;
+
+try (Session session = sessionFactory.openSession()) {
+    customer = session.find(Customer.class, 1);
+}
+
+customer.getOrders().size();
+
+Nach dem Schließen der Session versucht Hibernate, die orders nachzuladen. Die Session ist aber bereits geschlossen.
+Dann kann entstehen:
+LazyInitializationException
+
+Das Problem ist nicht, dass LAZY falsch ist. Das Problem ist, dass du außerhalb des gültigen Persistence-Kontexts
+auf ungeladene Daten zugreifst.
+
+Übliche Lösungen:
+benötigte Daten innerhalb der Transaktion verwenden
+gezielte JPQL-Abfrage mit join fetch
+DTO-Projektionen verwenden
+benötigte Beziehungen explizit laden
+
+Beispiel:
+select c
+from Customer c
+left join fetch c.orders
+where c.id = :id
+
+16. Default-Fetch-Typen
+Die JPA-Standardwerte sind:
+@OneToOne   → EAGER
+@ManyToOne  → EAGER
+@OneToMany  → LAZY
+@ManyToMany → LAZY
+
+Für Lernprojekte ist es gut, den Fetch-Typ explizit hinzuschreiben:
+@ManyToOne(fetch = FetchType.LAZY)
+Dann erkennst du sofort, welches Verhalten beabsichtigt ist.
+
+17. optional und nullable
+
+Diese beiden Eigenschaften wirken ähnlich, betreffen aber unterschiedliche Ebenen.
+@OneToOne(optional = false)
+@JoinColumn(name = "CUSTOMER_ID", nullable = false)
+private Customer customer;
+
+optional = false betrifft das Objektmodell:
+Dieses Java-Feld darf fachlich nicht leer sein.
+nullable = false betrifft die Datenbankspalte:
+CUSTOMER_ID NOT NULL
+
+Es ist häufig sinnvoll, beide passend zu setzen:
+@ManyToOne(optional = false)
+@JoinColumn(nullable = false)
+private Customer customer;
+
+18. Collections: List oder Set?
+
+Bei To-Many-Beziehungen brauchst du eine Collection.
+
+@OneToMany(mappedBy = "customer")
+private List<Order> orders = new ArrayList<>();
+oder:
+@OneToMany(mappedBy = "customer")
+private Set<Order> orders = new HashSet<>();
+
+List
+Geeignet, wenn:
+Reihenfolge wichtig ist
+Duplikate grundsätzlich möglich sein sollen
+du per Index zugreifen möchtest
+orders.get(0);
+
+Set
+Geeignet, wenn:
+keine Duplikate gewünscht sind
+die Reihenfolge nicht entscheidend ist
+die fachliche Einzigartigkeit wichtig ist
+Bei Set muss man besonders sorgfältig mit equals() und hashCode() umgehen.
+Für den Anfang ist oft eine initialisierte ArrayList verständlicher:
+private List<Order> orders = new ArrayList<>();
+
+Wichtig ist die Initialisierung. Nicht:
+private List<Order> orders;
+Sonst kann Folgendes passieren:
+customer.getOrders().add(order);
+und du erhältst eine NullPointerException.
+
+19. equals(), hashCode() und toString()
+
+Entities besitzen Beziehungen. Dadurch können Zyklen entstehen:
+Customer → CustomerDetail → Customer → CustomerDetail → ...
+
+Wenn Lombok beide Seiten in toString() einbezieht:
+@ToString
+kann ein StackOverflowError entstehen.
+Darum:
+@OneToOne(mappedBy = "customer")
+@ToString.Exclude
+private CustomerDetail customerDetail;
+
+Auch bei Collections:
+@OneToMany(mappedBy = "customer")
+@ToString.Exclude
+private List<Order> orders = new ArrayList<>();
+
+Ähnliche Vorsicht gilt für Lombok:
+@Data
+@Data erzeugt unter anderem equals(), hashCode() und toString().
+Das kann bei Entities und Beziehungen problematisch werden.
+Für Entities ist häufig kontrollierter:
+@Getter
+@Setter
+@NoArgsConstructor
+und equals() beziehungsweise hashCode() bewusst selbst zu gestalten.
+
+20. Dein Beispiel vollständig betrachtet
+
+Deine Beziehung ist:
+Customers 1 ↔ 1 CustomerDetail
+Mit gemeinsamem Primärschlüssel.
+Customers
+@Entity
+@Table(name = "CUSTOMERS")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Customers {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "CUSTOMER_ID")
+    private Integer customerId;
+
+    @Column(name = "FIRST_NAME")
+    private String firstName;
+
+    @Column(name = "LAST_NAME")
+    private String lastSurname;
+
+    @OneToOne(
+        mappedBy = "customer",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    @ToString.Exclude
+    private CustomerDetail customerDetail;
+
+    public void setCustomerDetail(CustomerDetail detail) {
+        this.customerDetail = detail;
+
+        if (detail != null) {
+            detail.setCustomer(this);
+        }
+    }
+}
+
+CustomerDetail
+
+@Entity
+@Table(name = "CUSTOMER_DETAILS")
+@Getter
+@Setter
+@NoArgsConstructor
+public class CustomerDetail {
+
+    @Id
+    @Column(name = "CUSTOMER_ID")
+    private Integer customerId;
+
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "CUSTOMER_ID")
+    @ToString.Exclude
+    private Customers customer;
+
+    private String address;
+    private String phone;
+    private String email;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "DATE_CREATE")
+    private Date createDate;
+}
+Was passiert beim Speichern?
+Customers customer = new Customers();
+
+CustomerDetail detail = new CustomerDetail();
+detail.setAddress("Ankara");
+
+customer.setCustomerDetail(detail);
+
+session.persist(customer);
+
+Der Ablauf ist ungefähr:
+1. Hibernate speichert Customers.
+2. Die Datenbank erzeugt CUSTOMER_ID, beispielsweise 1.
+3. Durch Cascade wird CustomerDetail ebenfalls gespeichert.
+4. Durch @MapsId erhält CustomerDetail ebenfalls die ID 1.
+
+SQL ungefähr:
+INSERT INTO CUSTOMERS (
+    FIRST_NAME,
+    LAST_NAME
+) VALUES (?, ?);
+Danach:
+INSERT INTO CUSTOMER_DETAILS (
+    ADDRESS,
+    PHONE,
+    EMAIL,
+    DATE_CREATE,
+    CUSTOMER_ID
+) VALUES (?, ?, ?, ?, ?);
+Beide Tabellen verwenden dieselbe Customer-ID.
+
+21. Wann nutzt man welche Beziehung?
+
+@OneToOne
+Wenn ein Objekt maximal genau ein zugehöriges Objekt besitzt.
+User → Profile
+Person → Passport
+Customer → CustomerDetail
+
+Nicht vorschnell verwenden. Manchmal können die Felder direkt in derselben Tabelle gespeichert werden.
+Eine separate Tabelle ist sinnvoll, wenn:
+die Daten optional sind
+die Daten getrennt geladen werden sollen
+die Daten fachlich einen eigenen Bereich darstellen
+sensible Informationen getrennt gespeichert werden sollen
+die Tabelle sonst sehr breit würde
+
+@ManyToOne
+Wenn viele Datensätze zu einem gemeinsamen Elternobjekt gehören.
+Order → Customer
+Employee → Department
+Product → Category
+Das ist sehr häufig die wichtigste Beziehung.
+
+@OneToMany
+Wenn du vom Elternobjekt auf dessen Kinder navigieren möchtest.
+Customer → Orders
+Department → Employees
+Order → Positions
+Oft zusammen mit @ManyToOne.
+
+@ManyToMany
+Wenn beide Seiten viele Elemente besitzen können.
+Student ↔ Course
+User ↔ Role
+Product ↔ Tag
+Bei zusätzlichen Feldern für die Verbindung lieber eine eigene Entity erstellen.
+
+22. Kompakte Notizen
+@OneToOne
+Ein A gehört zu einem B.
+Beispiel: Customer ↔ CustomerDetail.
+
+@ManyToOne
+Viele A gehören zu einem B.
+Beispiel: Viele Orders gehören zu einem Customer.
+Der Fremdschlüssel liegt normalerweise auf der Many-Seite.
+
+@OneToMany
+Ein A hat viele B.
+Beispiel: Ein Customer hat viele Orders.
+Meist die Rückseite einer ManyToOne-Beziehung.
+
+@ManyToMany
+Viele A gehören zu vielen B.
+Benötigt eine Join-Tabelle.
+Bei zusätzlichen Beziehungsdaten eigene Entity verwenden.
+@JoinColumn
+Definiert die Fremdschlüsselspalte.
+
+mappedBy
+Zeigt auf den Java-Feldnamen der besitzenden Seite.
+
+Owning Side
+Die Seite, welche den Fremdschlüssel verwaltet.
+Meist die Seite mit @JoinColumn.
+
+cascade
+Überträgt Operationen wie persist oder remove auf verbundene Entities.
+
+orphanRemoval
+Löscht ein Kind, wenn es aus der Elternbeziehung entfernt wird.
+
+LAZY
+Beziehung wird erst bei Bedarf geladen.
+
+EAGER
+Beziehung wird sofort geladen.
+
+@MapsId
+Eine Beziehung verwendet die ID der anderen Entity als eigene ID.

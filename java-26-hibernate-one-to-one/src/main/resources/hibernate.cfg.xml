@@ -35,7 +35,8 @@
         <property name="hbm2ddl.auto">create</property> <!-- hier ist wichtig -->
 
         <mapping class="org.hakanmetin.entity.Customers"/>
-        <mapping class="org.hakanmetin.entity.Workers"/>
+        <mapping class="org.hakanmetin.entity.CustomerDetail"/>
+
 
     </session-factory>
 </hibernate-configuration>
