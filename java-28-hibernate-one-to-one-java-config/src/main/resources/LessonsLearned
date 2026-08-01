@@ -1,0 +1,13 @@
+// Tabellen bei jedem Start neu erstellen
+settings.put(Environment.HBM2DDL_AUTO, "create");
+
+// Schema anpassen und Daten behalten
+settings.put(Environment.HBM2DDL_AUTO, "update");
+
+// Schema nur kontrollieren, nichts verändern
+settings.put(Environment.HBM2DDL_AUTO, "validate");
+
+// Keine automatische Schema-Aktion
+settings.put(Environment.HBM2DDL_AUTO, "none");
+
+
