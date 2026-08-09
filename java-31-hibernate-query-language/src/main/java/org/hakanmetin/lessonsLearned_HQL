@@ -1,0 +1,1120 @@
+##  HQL   ##
+
+HQL steht für Hibernate Query Language. Damit formulierst du Datenbankabfragen über deine Java-Entities und deren Attribute,
+ nicht direkt über Tabellen und Spalten.
+
+Die zentrale Idee ist:
+SQL arbeitet mit Tabellen und Spalten.
+HQL arbeitet mit Entities und Java-Attributen.
+Hibernate übersetzt HQL anschließend in SQL.
+Die aktuelle HQL-Version ist eng mit JPQL verwandt, aber umfangreicher: JPQL ist im Wesentlichen eine Teilmenge von HQL.
+
+1. Was passiert bei einer HQL-Abfrage?
+
+Angenommen, du schreibst:
+
+String hql = """
+        from Customers c
+        where c.first_name = :firstName
+        """;
+
+Hibernate führt gedanklich diese Schritte aus:
+
+HQL lesen
+    ↓
+Entity Customers erkennen
+    ↓
+Java-Attribut first_name erkennen
+    ↓
+Entity-Mapping auswerten
+    ↓
+passendes SQL für MySQL erzeugen
+    ↓
+SQL an die Datenbank schicken
+    ↓
+Datenbankzeilen lesen
+    ↓
+Customers-Objekte erzeugen
+
+Das erzeugte SQL könnte ungefähr so aussehen:
+select
+    c.CUSTOMER_ID,
+    c.FIRST_NAME,
+    c.LAST_NAME
+from CUSTOMERS c
+where c.FIRST_NAME = ?
+
+Du schreibst aber nicht selbst mit CUSTOMERS und FIRST_NAME, sondern mit:
+Customers
+first_name
+
+Also den Namen aus deinem Java-Modell.
+
+2. HQL im Vergleich zu SQL
+
+SQL
+SELECT *
+FROM CUSTOMERS
+WHERE FIRST_NAME = 'Mathias';
+
+Hier verwendest du:
+CUSTOMERS  → Tabellenname
+FIRST_NAME → Spaltenname
+
+HQL
+from Customers c
+where c.first_name = :firstName
+
+Hier verwendest du:
+Customers  → Entity-Name beziehungsweise Klassenname
+first_name → Java-Attribut
+
+Hibernate kennt aufgrund deiner Annotationen die Zuordnung:
+@Entity
+@Table(name = "CUSTOMERS")
+public class Customers {
+
+    @Column(name = "FIRST_NAME")
+    private String first_name;
+}
+
+Dadurch weiß Hibernate:
+
+Customers.first_name
+        ↓
+CUSTOMERS.FIRST_NAME
+
+3. Entity-Name statt Tabellenname
+
+Der Name hinter from ist normalerweise der Name der Entity-Klasse:
+
+@Entity
+
+public class Customers {
+}
+
+Deshalb:
+from Customers
+
+Nicht:
+from CUSTOMERS
+
+CUSTOMERS ist der Tabellenname, aber HQL erwartet den Entity-Namen. Standardmäßig ist der Entity-Name der einfache Java-Klassenname.
+
+Du könntest einen anderen Entity-Namen definieren:
+@Entity(name = "Customer")
+@Table(name = "CUSTOMERS")
+public class Customers {
+}
+
+Dann müsste das HQL so aussehen:
+from Customer
+
+Nicht mehr:
+from Customers
+Für ein sauberes Java-Modell würde man die Klasse gewöhnlich im Singular nennen:
+
+@Entity
+@Table(name = "CUSTOMERS")
+public class Customer {
+}
+
+Dann wäre die Abfrage leichter lesbar:
+from Customer c
+
+4. Die einfachste HQL-Abfrage
+
+Alle Kunden laden:
+List<Customers> customers;
+
+try (Session session =
+             HibernateUtil.getSessionFactory().openSession()) {
+
+    customers = session
+            .createSelectionQuery(
+                    "from Customers",
+                    Customers.class
+            )
+            .getResultList();
+}
+
+HQL:
+from Customers
+
+Bedeutung:
+Lade alle Objekte der Entity Customers.
+Das select kann in so einem einfachen Fall weggelassen werden.
+
+Explizit wäre es:
+select c
+from Customers c
+Beides liefert Customers-Objekte.
+
+Für Select-Abfragen empfiehlt die aktuelle Hibernate-API die typisierte Form:
+
+createSelectionQuery(hql, ResultType.class)
+Dadurch kennt Java den erwarteten Ergebnistyp.
+
+
+5. Was ist ein Alias?
+
+In dieser Abfrage:
+
+select c
+from Customers c
+
+ist c ein Alias für Customers.
+Customers → Entity
+c         → Alias
+
+Damit kannst du auf Attribute zugreifen:
+select c
+from Customers c
+where c.first_name = :firstName
+
+Bei mehreren Entities sind Aliasse praktisch unverzichtbar. Die from-Klausel deklariert die beteiligten Entities und
+weist ihnen Aliasse zu.
+Du kannst auch as schreiben:
+
+from Customers as c
+
+Das as ist optional:
+from Customers c
+
+6. Filtern mit where
+
+Alle Kunden namens Mathias:
+String hql = """
+        select c
+        from Customers c
+        where c.first_name = :firstName
+        """;
+
+List<Customers> result = session
+        .createSelectionQuery(hql, Customers.class)
+        .setParameter("firstName", "Mathias")
+        .getResultList();
+
+In HQL:
+
+where c.first_name = :firstName
+
+firstName ist ein benannter Parameter:
+:firstName
+
+Der Wert wird separat eingesetzt:
+.setParameter("firstName", "Mathias")
+
+Nicht so
+String hql =
+        "from Customers c where c.first_name = '" + userInput + "'";
+
+Das ist unsicher und kann zu Injection-Problemen führen.
+
+So
+String hql =
+        "from Customers c where c.first_name = :firstName";
+
+query.setParameter("firstName", userInput);
+
+Hibernate empfiehlt ausdrücklich Parameter für Benutzereingaben statt String-Verkettung.
+
+7. Mehrere Bedingungen
+
+String hql = """
+        select c
+        from Customers c
+        where c.first_name = :firstName
+          and c.last_surname = :lastName
+        """;
+
+List<Customers> result = session
+        .createSelectionQuery(hql, Customers.class)
+        .setParameter("firstName", "Mathias")
+        .setParameter("lastName", "Ferg")
+        .getResultList();
+
+Mögliche Operatoren:
+=
+<>
+>
+<
+>=
+<=
+like
+in
+between
+is null
+is not null
+and
+or
+not
+
+Beispiel mit like:
+String hql = """
+        select c
+        from Customers c
+        where lower(c.first_name) like lower(:pattern)
+        """;
+
+List<Customers> result = session
+        .createSelectionQuery(hql, Customers.class)
+        .setParameter("pattern", "%mat%")
+        .getResultList();
+
+Das Prozentzeichen bedeutet:
+%mat% → enthält „mat“
+mat%  → beginnt mit „mat“
+%mat  → endet mit „mat“
+
+8. Nach ID suchen: find() oder HQL?
+
+Für die Suche nach dem Primärschlüssel brauchst du meistens kein HQL.
+
+Einfacher:
+Customers customer =
+        session.find(Customers.class, 1);
+
+HQL wäre möglich:
+Customers customer = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                where c.customer_id = :id
+                """,
+                Customers.class
+        )
+        .setParameter("id", 1)
+        .uniqueResult();
+
+Aber für eine einfache Primärschlüsselsuche ist:
+
+session.find(Customers.class, 1);
+
+klarer.
+
+Faustregel
+Suche anhand der ID
+→ session.find()
+
+Komplexere Filterung
+→ HQL
+
+9. Ein einzelnes Ergebnis laden
+
+Wenn höchstens ein Ergebnis erwartet wird:
+Optional<Customers> customer = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                where c.email = :email
+                """,
+                Customers.class
+        )
+        .setParameter("email", "test@example.com")
+        .uniqueResultOptional();
+
+In deinem Modell befindet sich email allerdings in CustomerDetail. Deshalb wäre die Abfrage über die Beziehung:
+Optional<Customers> customer = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                join c.customerDetail d
+                where d.email = :email
+                """,
+                Customers.class
+        )
+        .setParameter("email", "ankara@gmail.com")
+        .uniqueResultOptional();
+
+uniqueResultOptional() liefert:
+Optional mit Ergebnis → Kunde wurde gefunden
+Optional.empty()      → kein Kunde wurde gefunden
+
+Hibernate stellt für einzelne Resultate unter anderem uniqueResult() und uniqueResultOptional() bereit.
+
+10. Beziehungen mit HQL verwenden
+
+Hier zeigt sich eine große Stärke von HQL: Du navigierst über Java-Beziehungen.
+
+Angenommen, dein Modell lautet:
+class Customers {
+
+    @OneToOne(mappedBy = "customer")
+    private CustomerDetail customerDetail;
+}
+class CustomerDetail {
+
+    @OneToOne
+    private Customers customer;
+}
+
+Dann kannst du schreiben:
+
+select c
+from Customers c
+join c.customerDetail d
+where d.address = :address
+
+Beachte:
+c.customerDetail
+ist das Java-Attribut:
+private CustomerDetail customerDetail;
+
+Du musst nicht selbst schreiben:
+CUSTOMERS.CUSTOMER_ID = CUSTOMER_DETAILS.CUSTOMER_ID
+
+Hibernate kennt diese Verbindung bereits aus:
+@OneToOne
+@JoinColumn(name = "CUSTOMER_ID")
+
+11. Implizite Navigation über Beziehungen
+
+Du kannst bei einer To-One-Beziehung teilweise auch direkt durch die Beziehung navigieren:
+
+select c
+from Customers c
+where c.customerDetail.address = :address
+
+Das ist ähnlich wie Java:
+customer.getCustomerDetail().getAddress();
+
+Hibernate erzeugt den dafür notwendigen SQL-Join automatisch. Solche impliziten Joins werden von Hibernate als innere Joins behandelt.
+
+Explizit wäre:
+select c
+from Customers c
+join c.customerDetail d
+where d.address = :address
+Gerade beim Lernen würde ich häufig die explizite Schreibweise verwenden, weil man den Join klar erkennt.
+
+12. join verstehen
+
+Inner Join
+select c
+from Customers c
+join c.customerDetail d
+
+Das liefert nur Kunden, die ein CustomerDetail besitzen.
+
+Gedanklich:
+
+Customers mit Detail → enthalten
+Customers ohne Detail → nicht enthalten
+
+Left Join
+select c
+from Customers c
+left join c.customerDetail d
+
+Das liefert auch Kunden ohne Detail.
+Customers mit Detail → enthalten
+Customers ohne Detail → ebenfalls enthalten
+
+Beispiel
+List<Customers> result = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                left join c.customerDetail d
+                where d.address = :address
+                   or d is null
+                """,
+                Customers.class
+        )
+        .setParameter("address", "Ankara")
+        .getResultList();
+
+13. join und join fetch sind nicht dasselbe
+
+Das ist sehr wichtig.
+Normaler Join
+
+select c
+from Customers c
+join c.customerDetail d
+where d.address = :address
+
+Der Join wird zum Filtern verwendet.
+Das bedeutet aber nicht zwingend, dass customerDetail vollständig als initialisierte Beziehung mitgeladen wird.
+
+Fetch Join
+select c
+from Customers c
+left join fetch c.customerDetail
+
+Ein Fetch Join bedeutet:
+Lade Customers und CustomerDetail gemeinsam in derselben Abfrage.
+
+Java:
+List<Customers> customers = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                left join fetch c.customerDetail
+                """,
+                Customers.class
+        )
+        .getResultList();
+
+Danach ist das Detail normalerweise bereits geladen:
+for (Customers customer : customers) {
+    System.out.println(
+            customer.getCustomerDetail().getAddress()
+    );
+}
+Ein Fetch Join überschreibt für diese Abfrage das Lazy-Verhalten der Beziehung und kann das bekannte N+1-Abfrageproblem vermeiden.
+
+
+14. Das N+1-Problem
+Angenommen, du lädst 100 Kunden:
+from Customers
+
+Danach greifst du für jeden Kunden auf das Detail zu:
+for (Customers customer : customers) {
+    System.out.println(
+            customer.getCustomerDetail().getAddress()
+    );
+}
+
+Im ungünstigen Fall entsteht:
+1 Abfrage für alle Customers
++
+100 Abfragen für CustomerDetail
+=
+101 Abfragen
+
+Das nennt man N+1:
+1 Hauptabfrage + N zusätzliche Abfragen
+Mit Fetch Join:
+select c
+from Customers c
+left join fetch c.customerDetail
+
+kann Hibernate alles in einer gemeinsamen SQL-Abfrage laden.
+Aber Fetch Join sollte bewusst verwendet werden. Mehrere parallele Collection-Fetch-Joins können
+ein kartesisches Produkt und sehr schlechte Performance verursachen.
+
+
+15. Nur bestimmte Felder auswählen
+Du musst nicht immer ganze Entities laden.
+Zum Beispiel nur Vornamen:
+
+List<String> names = session
+        .createSelectionQuery(
+                """
+                select c.first_name
+                from Customers c
+                order by c.first_name
+                """,
+                String.class
+        )
+        .getResultList();
+
+Die select-Liste bestimmt, welche Objekte oder Werte zurückgegeben werden. Das nennt man Projektion.
+Nur IDs:
+List<Integer> ids = session
+        .createSelectionQuery(
+                """
+                select c.customer_id
+                from Customers c
+                """,
+                Integer.class
+        )
+        .getResultList();
+
+Vor- und Nachname zusammen:
+List<Object[]> rows = session
+        .createSelectionQuery(
+                """
+                select c.first_name, c.last_surname
+                from Customers c
+                """,
+                Object[].class
+        )
+        .getResultList();
+
+for (Object[] row : rows) {
+    String firstName = (String) row[0];
+    String lastName = (String) row[1];
+
+    System.out.println(firstName + " " + lastName);
+}
+Object[] funktioniert, ist aber nicht besonders komfortabel oder typsicher.
+
+16. DTO-Projektion
+Für echte Anwendungen ist ein DTO häufig besser.
+package org.hakanmetin.dto;
+
+public record CustomerSummary(
+        Integer id,
+        String firstName,
+        String lastName
+) {
+}
+
+HQL:
+List<CustomerSummary> result = session
+        .createSelectionQuery(
+                """
+                select new org.hakanmetin.dto.CustomerSummary(
+                    c.customer_id,
+                    c.first_name,
+                    c.last_surname
+                )
+                from Customers c
+                order by c.first_name
+                """,
+                CustomerSummary.class
+        )
+        .getResultList();
+
+Vorteil:
+Es werden nur die benötigten Felder geladen.
+Das Ergebnis hat einen klaren Java-Typ.
+Die Entity wird nicht unnötig vollständig geladen.
+Das eignet sich zum Beispiel für:
+Tabellenansichten
+Suchergebnisse
+Reports
+REST-API-Antworten
+Listen, bei denen nicht alle Entity-Felder benötigt werden
+
+17. Sortieren
+
+select c
+from Customers c
+order by c.last_surname asc
+
+Absteigend:
+select c
+from Customers c
+order by c.last_surname desc
+
+Mehrere Sortierungen:
+select c
+from Customers c
+order by c.last_surname asc,
+         c.first_name asc
+
+Java:
+List<Customers> result = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                order by c.last_surname, c.first_name
+                """,
+                Customers.class
+        )
+        .getResultList();
+
+18. Pagination
+Wenn du nicht alle Datensätze auf einmal laden möchtest:
+List<Customers> result = session
+        .createSelectionQuery(
+                """
+                select c
+                from Customers c
+                order by c.customer_id
+                """,
+                Customers.class
+        )
+        .setFirstResult(0)
+        .setMaxResults(20)
+        .getResultList();
+
+Bedeutung:
+setFirstResult(0) → beim ersten Ergebnis beginnen
+setMaxResults(20) → höchstens 20 Ergebnisse laden
+
+Für die zweite Seite:
+.setFirstResult(20)
+.setMaxResults(20)
+
+Allgemeine Formel:
+int offset = pageNumber * pageSize;
+Beispiel:
+int pageNumber = 2;
+int pageSize = 20;
+
+query.setFirstResult(pageNumber * pageSize);
+query.setMaxResults(pageSize);
+Das ist wichtig bei großen Tabellen. Man sollte nicht hunderttausende Entities laden, wenn die Oberfläche nur 20 anzeigt.
+
+19. Aggregationen
+
+HQL unterstützt auch Aggregatfunktionen.
+Anzahl aller Kunden
+Long count = session
+        .createSelectionQuery(
+                """
+                select count(c)
+                from Customers c
+                """,
+                Long.class
+        )
+        .getSingleResult();
+
+Anzahl nach Nachname gruppieren
+List<Object[]> result = session
+        .createSelectionQuery(
+                """
+                select c.last_surname, count(c)
+                from Customers c
+                group by c.last_surname
+                order by count(c) desc
+                """,
+                Object[].class
+        )
+        .getResultList();
+
+Weitere typische Funktionen:
+count(...)
+sum(...)
+avg(...)
+min(...)
+max(...)
+
+Beispiel aus einem Bestellsystem:
+select o.customer.id, sum(o.totalAmount)
+from Order o
+group by o.customer.id
+
+Solche Abfragen eignen sich für:
+Statistiken
+Dashboards
+Berichte
+Summen
+Durchschnittswerte
+Gruppierungen
+
+20. HQL für Updates
+HQL kann auch mehrere Datensätze direkt aktualisieren.
+
+Beispiel:
+Transaction tx = session.beginTransaction();
+
+int updated = session
+        .createMutationQuery(
+                """
+                update CustomerDetail d
+                set d.address = :newAddress
+                where d.address = :oldAddress
+                """
+        )
+        .setParameter("newAddress", "Berlin")
+        .setParameter("oldAddress", "Ankara")
+        .executeUpdate();
+
+tx.commit();
+
+System.out.println("Geänderte Datensätze: " + updated);
+
+Für update, delete und insert verwendet die aktuelle Hibernate-API:
+createMutationQuery(...)
+und anschließend:
+executeUpdate()
+Der Rückgabewert ist die Anzahl der betroffenen Entity-Instanzen.
+
+21. HQL für Delete
+Transaction tx = session.beginTransaction();
+
+int deleted = session
+        .createMutationQuery(
+                """
+                delete from CustomerDetail d
+                where d.email is null
+                """
+        )
+        .executeUpdate();
+
+tx.commit();
+
+Das löscht alle passenden Datensätze direkt.
+Aber hier kommt ein sehr wichtiger Unterschied.
+
+Entity einzeln löschen
+CustomerDetail detail =
+        session.find(CustomerDetail.class, 1);
+
+session.remove(detail);
+Hibernate arbeitet mit dem konkreten Entity-Objekt und berücksichtigt dessen normalen Lebenszyklus.
+
+Bulk Delete mit HQL
+delete from CustomerDetail
+where email is null
+
+Hibernate löscht direkt in der Datenbank, ohne zuvor jedes Entity-Objekt einzeln zu laden.
+
+Das ist effizienter für viele Datensätze, aber der aktuelle Persistence Context wird nicht automatisch
+mit den Änderungen synchronisiert. Bereits geladene Objekte können danach einen veralteten Zustand besitzen.
+Nach einem Bulk-Update oder Bulk-Delete kann deshalb sinnvoll sein:
+session.clear();
+
+22. Wann sollte man HQL verwenden?
+
+Szenario 1: Nach Eigenschaften suchen
+from Customers c
+where c.first_name = :firstName
+
+Verwendung:
+Kunden nach Namen suchen
+Produkte nach Preis filtern
+Bestellungen nach Datum suchen
+Benutzer anhand der E-Mail finden
+
+Szenario 2: Mehrere Bedingungen kombinieren
+from Customers c
+where c.first_name = :firstName
+  and c.last_surname = :lastName
+
+Verwendung:
+Suchmasken
+Filterfunktionen
+administrative Übersichten
+
+Szenario 3: Beziehungen abfragen
+select c
+from Customers c
+join c.customerDetail d
+where d.address = :address
+
+Verwendung:
+alle Kunden aus Berlin
+alle Bestellungen eines Kunden
+alle Mitarbeiter einer Abteilung
+alle Kommentare eines Beitrags
+
+Szenario 4: Lazy-Beziehungen gezielt mitladen
+select c
+from Customers c
+left join fetch c.customerDetail
+
+Verwendung:
+wenn die Beziehung direkt benötigt wird
+um N+1-Probleme zu vermeiden
+um den benötigten Objektgraphen gezielt zu laden
+
+Szenario 5: Nur bestimmte Daten laden
+select c.first_name, c.last_surname
+from Customers c
+
+Verwendung:
+Listenansichten
+Reports
+DTOs
+API-Ausgaben
+Performanceoptimierung
+
+Szenario 6: Statistiken berechnen
+select count(c)
+from Customers c
+
+Verwendung:
+Dashboard
+Anzahl von Datensätzen
+Summen und Durchschnittswerte
+Gruppierungen
+
+Szenario 7: Viele Datensätze gemeinsam ändern
+update CustomerDetail d
+set d.address = :newAddress
+where d.address = :oldAddress
+
+Verwendung:
+Massenänderungen
+Status mehrerer Bestellungen ändern
+alte Datensätze bereinigen
+administrative Datenkorrekturen
+
+23. Wann brauchst du kein HQL?
+
+Einfaches Speichern
+session.persist(customer);
+Kein HQL notwendig.
+
+Ein Entity anhand seiner ID laden
+session.find(Customers.class, id);
+Kein HQL notwendig.
+
+Managed Entity ändern
+Customers customer =
+        session.find(Customers.class, 1);
+
+customer.setFirst_name("Alex");
+Solange das Entity managed ist und eine Transaktion läuft, erkennt Hibernate die Änderung über Dirty Checking:
+Transaction tx = session.beginTransaction();
+
+Customers customer =
+        session.find(Customers.class, 1);
+
+customer.setFirst_name("Alex");
+
+tx.commit();
+
+Du brauchst dafür kein:
+update Customers ...
+Einzelnes Entity löschen
+
+Customers customer =
+        session.find(Customers.class, 1);
+
+session.remove(customer);
+Auch dafür ist HQL nicht zwingend notwendig.
+
+24. HQL, JPQL, Criteria API und Native SQL
+
+HQL
+from Customers c
+where c.first_name = :name
+
+Gut geeignet für:
+gut lesbare Abfragen
+Joins
+Filter
+Projektionen
+Aggregationen
+Hibernate-spezifische Funktionen
+
+JPQL
+JPQL sieht HQL sehr ähnlich:
+select c
+from Customers c
+where c.first_name = :name
+
+JPQL ist der standardisierte Teil der Jakarta-Persistence-Welt. Modernes HQL bietet zusätzliche Funktionen über JPQL hinaus.
+
+Criteria API
+Die Abfrage wird mit Java-Objekten aufgebaut:
+CriteriaBuilder cb = session.getCriteriaBuilder();
+CriteriaQuery<Customers> query =
+        cb.createQuery(Customers.class);
+
+Root<Customers> root =
+        query.from(Customers.class);
+
+query.select(root)
+     .where(
+         cb.equal(
+             root.get("first_name"),
+             "Mathias"
+         )
+     );
+Criteria eignet sich besonders für sehr dynamische Abfragen, beispielsweise eine Suchmaske mit zehn optionalen Filtern.
+Native SQL
+session.createNativeQuery(
+        """
+        select *
+        from CUSTOMERS
+        where FIRST_NAME = :name
+        """,
+        Customers.class
+);
+
+Native SQL arbeitet direkt mit Tabellen und Spalten.
+Es ist sinnvoll, wenn du:
+datenbankspezifische Funktionen benötigst
+sehr spezielles oder optimiertes SQL schreiben musst
+Features verwendest, die HQL nicht passend unterstützt
+bestehende komplexe SQL-Abfragen weiterverwenden möchtest
+Der Nachteil ist eine stärkere Bindung an die konkrete Datenbank.
+
+25. HQL ist nicht automatisch schneller als SQL
+
+Hibernate übersetzt HQL letztlich in SQL.
+HQL
+  ↓
+Hibernate-Parser
+  ↓
+SQL
+  ↓
+Datenbank
+
+Die Performance hängt also unter anderem davon ab:
+welches SQL Hibernate erzeugt
+welche Joins verwendet werden
+ob passende Datenbankindizes vorhanden sind
+wie viele Datensätze geladen werden
+ob ganze Entities oder nur DTO-Felder geladen werden
+ob N+1-Abfragen entstehen
+ob unnötig EAGER geladen wird
+
+Deshalb ist deine Einstellung hilfreich:
+<property name="show_sql">true</property>
+<property name="format_sql">true</property>
+So kannst du beim Lernen beobachten, welches SQL aus deinem HQL entsteht.
+
+26. Typische Fehler
+
+Fehler 1: Tabellenname statt Entity-Name
+Falsch:
+from CUSTOMERS
+Richtig:
+from Customers
+
+Fehler 2: Spaltenname statt Java-Attribut
+Angenommen:
+@Column(name = "FIRST_NAME")
+private String first_name;
+Falsch:
+where c.FIRST_NAME = :name
+Richtig:
+where c.first_name = :name
+
+Fehler 3: Groß- und Kleinschreibung bei Attributen
+Entity- und Attributnamen sind case-sensitive. HQL-Schlüsselwörter wie select und from sind dagegen nicht case-sensitive.
+Wenn das Feld heißt:
+private String first_name;
+dann ist dies falsch:
+c.firstName
+Es sei denn, du hast das Java-Feld tatsächlich in firstName umbenannt.
+
+Fehler 4: Werte direkt zusammensetzen
+Falsch:
+"from Customers c where c.first_name = '" + name + "'"
+Richtig:
+"from Customers c where c.first_name = :name"
+und:
+.setParameter("name", name)
+
+Fehler 5: Fetch Join überall verwenden
+join fetch ist nützlich, aber nicht jede Beziehung muss immer geladen werden.
+Lade nur das, was der jeweilige Anwendungsfall tatsächlich benötigt.
+
+Fehler 6: Bulk Update mit normaler Entity-Änderung verwechseln
+update Customers ...
+arbeitet direkt auf vielen Datenbankdatensätzen.
+customer.setFirst_name("Alex");
+arbeitet mit einem managed Entity und Hibernate Dirty Checking.
+Beides hat unterschiedliche Anwendungsfälle.
+
+27. Ein komplettes Beispiel für dein Projekt
+package org.hakanmetin;
+
+import org.hakanmetin.entity.Customers;
+import org.hakanmetin.util.HibernateUtil;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import java.util.List;
+
+public class HqlExample {
+
+    public static void main(String[] args) {
+
+        Transaction tx = null;
+
+        try (Session session =
+                     HibernateUtil
+                             .getSessionFactory()
+                             .openSession()) {
+
+            tx = session.beginTransaction();
+
+            String hql = """
+                    select c
+                    from Customers c
+                    left join fetch c.customerDetail d
+                    where lower(c.first_name) like lower(:name)
+                    order by c.last_surname
+                    """;
+
+            List<Customers> customers = session
+                    .createSelectionQuery(
+                            hql,
+                            Customers.class
+                    )
+                    .setParameter("name", "%mat%")
+                    .setMaxResults(20)
+                    .getResultList();
+
+            for (Customers customer : customers) {
+                System.out.println(
+                        customer.getFirst_name()
+                        + " "
+                        + customer.getLast_surname()
+                );
+
+                if (customer.getCustomerDetail() != null) {
+                    System.out.println(
+                            customer
+                                    .getCustomerDetail()
+                                    .getAddress()
+                    );
+                }
+            }
+
+            tx.commit();
+
+        } catch (RuntimeException exception) {
+
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+
+            exception.printStackTrace();
+
+        } finally {
+            HibernateUtil.shutdown();
+        }
+    }
+}
+
+Diese Abfrage macht mehrere Dinge:
+
+select c
+Gibt Customers-Objekte zurück.
+
+from Customers c
+Verwendet Customers als Root-Entity und c als Alias.
+
+left join fetch c.customerDetail d
+Lädt das CustomerDetail direkt mit und behält auch Kunden ohne Detail.
+
+where lower(c.first_name) like lower(:name)
+Filtert ohne Beachtung der Groß- und Kleinschreibung.
+
+order by c.last_surname
+Sortiert nach Nachnamen.
+
+.setMaxResults(20)
+Begrenzt die Ergebnismenge.
+
+
+28. Entscheidungsregel für deine Notizen
+persist(entity)
+→ ein neues Objekt speichern
+
+find(Entity.class, id)
+→ ein Objekt anhand der ID laden
+
+Entity verändern + commit
+→ ein managed Objekt aktualisieren
+
+remove(entity)
+→ ein bekanntes Objekt löschen
+
+HQL select
+→ Objekte anhand von Bedingungen suchen,
+  Beziehungen abfragen, sortieren,
+  gruppieren oder projizieren
+
+HQL update/delete
+→ viele Datensätze auf einmal ändern oder löschen
+
+Criteria API
+→ sehr dynamische Abfragen mit vielen optionalen Filtern
+
+Native SQL
+→ datenbankspezifisches oder besonders komplexes SQL
+
+
+Der wichtigste Merksatz lautet:
+HQL ist objektorientiertes Abfragen: Du formulierst die Abfrage mit Entity-Namen, Java-Attributen und Java-Beziehungen;
+Hibernate erzeugt daraus das SQL für die Datenbank.
