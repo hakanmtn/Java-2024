@@ -38,6 +38,9 @@ public class Customers {
     @Column(name = "LAST_NAME")
     private String last_surname;
 
+    @Column(name = "AGE")
+    private short age;
+
     /*
      * "customer" ist der Java-Feldname in CustomerDetail.
      * mappedBy verweist nicht auf den Datenbank-Spaltennamen.
