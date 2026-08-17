@@ -1,7 +1,7 @@
 package org.hakanmetin;
 
 
-import jakarta.persistence.EntityExistsException;
+
 import org.hakanmetin.entity.Customers;
 import org.hakanmetin.util.HibernateUtil;
 import org.hibernate.Session;
