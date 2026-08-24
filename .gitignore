@@ -1,83 +1,57 @@
- target/
-.target/
+# Build output
+target/
+**/target/
+build/
+**/build/
+dist/
 
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Compiled and packaged files
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+!**/gradle/wrapper/gradle-wrapper.jar
+!**/.mvn/wrapper/maven-wrapper.jar
 
-### IntelliJ IDEA ###
+# Test tool caches
+.jqwik-database
+**/.jqwik-database
+
+# IntelliJ IDEA
 .idea/
-idea/
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
 *.iws
 *.iml
 *.ipr
 
-### Eclipse ###
-.apt_generated
+# Eclipse and Spring Tool Suite
+.apt_generated/
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
+.sts4-cache/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
 
-### VS Code ###
+# Visual Studio Code
 .vscode/
 
-### Mac OS ###
-.DS_Store
+# Local configuration and environment files
+.env
+.env.*
+!.env.example
 
-
-
-
-
-# Compiled class file
-*.class
-
-# Log file
+# Logs and JVM crash reports
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Operating-system files
 .DS_Store
-.DS_Store?
-*.gradle
-*.bat
-java-17-generics/gradlew
-*.md
-README.md
-*.jar
-java-17-generics/gradle/wrapper/gradle-wrapper.jar
-*.properties
-*.jar
-java-17-generics/gradle/wrapper/gradle-wrapper.jar
+Thumbs.db
