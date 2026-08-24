@@ -42,6 +42,11 @@ nbdist/
 # Visual Studio Code
 .vscode/
 
+
+# Local database configuration
+**/src/main/resources/hibernate.cfg.xml
+!**/src/main/resources/hibernate.cfg.example.xml
+
 # Local configuration and environment files
 .env
 .env.*

@@ -12,8 +12,8 @@
        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
        <property name="connection.url">jdbc:mysql://localhost:3306/companydb</property>
        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
-       <property name="connection.username">root</property>
-       <property name="connection.password">Hakan.01</property>
+       <property name="connection.username">YOUR_DATABASE_USER</property>
+       <property name="connection.password">YOUR_DATABASE_PASSWORD</property>
 
 
         <!-- PostgreSQL -->
@@ -23,8 +23,8 @@
 
         <property name="connection.url">jdbc:postgresql://localhost:5432/companydb</property>
         <property name="dialect">org.hibernate.dialect.PostgreSQLDialect</property>
-        <property name="connection.username">postgres</property>
-        <property name="connection.password">HAkan.01</property>
+        <property name="connection.username">YOUR_DATABASE_USER</property>
+        <property name="connection.password">YOUR_DATABASE_PASSWORD</property>
         -->
 
         <!--<property name="connection.pool_size">3</property>-->
@@ -36,7 +36,6 @@
 
         <mapping class="org.hakanmetin.entity.Customers"/>
         <mapping class="org.hakanmetin.entity.CustomerDetail"/>
-        <mapping class="org.hakanmetin.entity.Orders"/>
 
 
     </session-factory>

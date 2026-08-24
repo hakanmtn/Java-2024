@@ -68,8 +68,9 @@ Vor dem Start sollte deshalb die im jeweiligen `pom.xml` konfigurierte Version
 als Project SDK ausgewählt werden.
 
 Die JDBC- und Hibernate-Beispiele benötigen zusätzlich eine lokale PostgreSQL-
-oder MySQL-Datenbank. Verbindungsdaten sind ausschließlich für die lokale
-Lernumgebung vorgesehen und müssen an das eigene System angepasst werden.
+oder MySQL-Datenbank. Die benötigten Umgebungsvariablen und sicheren lokalen
+Konfigurationsschritte sind in der
+[Datenbankkonfiguration](DATABASE_SETUP.md) beschrieben.
 
 ## Einordnung
 

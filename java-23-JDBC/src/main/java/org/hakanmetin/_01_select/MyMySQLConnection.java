@@ -2,6 +2,8 @@ package org.hakanmetin._01_select;
 
 import java.sql.*;
 
+import static org.hakanmetin.config.DatabaseConfig.require;
+
 public class MyMySQLConnection {
 
     public static void main(String[] args) {
@@ -12,9 +14,9 @@ public class MyMySQLConnection {
 
         try{  //Veri tabani olmayabilir, o yüzden TRY-CATCH
             //Baglanti icin
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/my_company_db",
-                                               "root",
-                                               "Hakan.01"); //Hangi veri tabanina gideceksek
+            conn = DriverManager.getConnection(require("MYSQL_URL"),
+                                               require("MYSQL_USER"),
+                                               require("MYSQL_PASSWORD")); //Hangi veri tabanina gideceksek
 
             statement = conn.createStatement();  //bu baglanti üzerinden sorgu olusturabiliriz
 
