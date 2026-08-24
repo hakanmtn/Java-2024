@@ -1,0 +1,55 @@
+name: Ausgewählte Java-Module
+
+on:
+  pull_request:
+    paths:
+      - "java-16-collections/**"
+      - "java-19-optional/**"
+      - "java-20-exceptions-try-catch-finally/**"
+      - "java-21-concurrency-multi-thread/**"
+      - "UnitTest_PropertyBasedTest/**"
+      - ".github/workflows/selected-java-modules.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "java-16-collections/**"
+      - "java-19-optional/**"
+      - "java-20-exceptions-try-catch-finally/**"
+      - "java-21-concurrency-multi-thread/**"
+      - "UnitTest_PropertyBasedTest/**"
+      - ".github/workflows/selected-java-modules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  maven-verify:
+    name: ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - java-16-collections
+          - java-19-optional
+          - java-20-exceptions-try-catch-finally
+          - java-21-concurrency-multi-thread
+          - UnitTest_PropertyBasedTest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v7
+
+      - name: Java 22 einrichten
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "22"
+          cache: maven
+          cache-dependency-path: ${{ matrix.module }}/pom.xml
+
+      - name: Modul kompilieren und testen
+        working-directory: ${{ matrix.module }}
+        run: mvn --batch-mode --no-transfer-progress verify
