@@ -1,5 +1,7 @@
 # Java-Lernrepository
 
+[![Ausgewählte Java-Module](https://github.com/hakanmtn/Java-2024/actions/workflows/selected-java-modules.yml/badge.svg)](https://github.com/hakanmtn/Java-2024/actions/workflows/selected-java-modules.yml)
+
 Dieses Repository dokumentiert meine praktische Java-Weiterbildung und eigene
 Übungen – von den Grundlagen der Sprache bis zu Datenbankzugriffen mit JDBC und
 objektrelationaler Abbildung mit JPA/Hibernate.
@@ -45,6 +47,12 @@ objektrelationaler Abbildung mit JPA/Hibernate.
 - SQL, JDBC, PostgreSQL und MySQL
 - JPA und Hibernate ORM
 - Git und GitHub
+
+## Automatische Prüfung
+
+GitHub Actions kompiliert und testet fünf ausgewählte, datenbankfreie Module
+mit Java 22. Dazu gehören Collections, Optional, Exceptions, Nebenläufigkeit
+sowie die Beispiele für Unit- und Property-based Testing.
 
 ## Verwendung
 
