@@ -4,6 +4,9 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
 
+        greeting("Say Something");
+
+
 
 
 
@@ -15,5 +18,9 @@ public class Main {
 
     private static void changeAge(Integer age) {
         age = 99;
+    }
+
+    private static void greeting(String greeting) {
+        System.out.println(greeting);
     }
 }

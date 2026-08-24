@@ -1,6 +1,7 @@
 package org.hakanmetin;
 
 public class Mensch {
+
     public static void main(String[] args) {
 
         String firstName = "Hakan";

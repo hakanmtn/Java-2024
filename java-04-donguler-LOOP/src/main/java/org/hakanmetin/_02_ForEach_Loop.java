@@ -1,5 +1,7 @@
 package org.hakanmetin;
 
+import java.util.Arrays;
+
 public class _02_ForEach_Loop {
     public static void main(String[] args) {
 
@@ -53,6 +55,9 @@ public class _02_ForEach_Loop {
         for(int year : arrYears){
             System.out.println(year);
         }
+
+        System.out.println("---------");
+        System.out.println(Arrays.toString(arrYears));
 
 
 

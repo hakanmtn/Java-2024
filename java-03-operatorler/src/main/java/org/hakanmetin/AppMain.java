@@ -8,6 +8,8 @@ public class AppMain {
         int c = a + b;
 
 
+
+
         System.out.println("Die Summe: " + c); //Hier wird alles String '+' - konkatiniert
         System.out.println("Die Summe: " + a + b); // Die Summe: 102
         System.out.println("Die Summe: " + (a + b)); // Die Summe: 12
@@ -78,6 +80,12 @@ public class AppMain {
 
 
         System.out.println("Modulo: " + (zahl2 % zahl1)); //ohne Klammer geht auch, aber mit Klammer schöner
+
+        double xh = 5.0/2;
+        System.out.println(xh);
+
+        double xy = 2.0/0;
+        System.out.println(xy); // Infinity
 
     }
 }

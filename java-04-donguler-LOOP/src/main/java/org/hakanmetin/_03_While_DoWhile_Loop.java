@@ -24,7 +24,7 @@ public class _03_While_DoWhile_Loop {
 
             System.out.println(j);
             j++;
-        }while(i<5);
+        }while(j<5);
 
     }
 

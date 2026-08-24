@@ -100,9 +100,8 @@ public class Katze {
 
         katze.setAlter(6);
 
-        System.out.println("Alter der Katze: " + katze.getAlter() + " - Farbe: "+ katze.getFarbe() + "- Rasse: "+ katze.getRasse());
+        System.out.println("Alter der Katze: " + katze.getAlter() + " - Farbe: "+ katze.getFarbe() + " - Rasse: "+ katze.getRasse());
 
     }
-
 
 }
