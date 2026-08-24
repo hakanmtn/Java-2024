@@ -8,7 +8,7 @@ public final class DatabaseConfig {
     public static String require(String variableName) {
         String value = System.getenv(variableName);
 
-        if (value == null || value.isBlank()) {
+        if (value == null || value.trim().isEmpty()) {
             throw new IllegalStateException(
                     "Fehlende Umgebungsvariable für die Datenbank: " + variableName);
         }
