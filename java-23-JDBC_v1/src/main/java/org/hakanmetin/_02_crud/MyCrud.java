@@ -3,6 +3,8 @@ package org.hakanmetin._02_crud;
 
 import java.sql.*;
 
+import static org.hakanmetin.config.DatabaseConfig.require;
+
 //CRUD -->  CREATE, READ, UPDATE, DELETE
 public class MyCrud {
 
@@ -11,9 +13,9 @@ public class MyCrud {
     private Statement statement = null; // Buda burada bulunsun, PreparedStatement daha gelismis
     private ResultSet resultSet = null;  // Buda sorgunun sonucunu almak icin kullaniyoruz
 
-    private final String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
-    private final String DB_USER = "postgres";
-    private final String DB_PASSWORD = "HAkan.01";
+    private static final String DB_URL = require("POSTGRES_URL");
+    private static final String DB_USER = require("POSTGRES_USER");
+    private static final String DB_PASSWORD = require("POSTGRES_PASSWORD");
 
 
 

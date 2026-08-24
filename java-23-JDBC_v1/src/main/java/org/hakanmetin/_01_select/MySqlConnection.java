@@ -2,6 +2,8 @@ package org.hakanmetin._01_select;
 
 import java.sql.*;
 
+import static org.hakanmetin.config.DatabaseConfig.require;
+
 public class MySqlConnection
 {
     public static void main( String[] args )
@@ -19,8 +21,9 @@ public class MySqlConnection
         // Hata meydana gelebilir, veri tabanina baglanirken
 
         try{
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mycompanydb",
-                                                        "root", "HAkan.01");  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
+            connection = DriverManager.getConnection(require("MYSQL_URL"),
+                                               require("MYSQL_USER"),
+                                               require("MYSQL_PASSWORD"));  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
 
             statement = connection.createStatement(); // Statement olusturmamiz lazim
 

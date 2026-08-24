@@ -2,6 +2,8 @@ package org.hakanmetin._01_select;
 
 import java.sql.*;
 
+import static org.hakanmetin.config.DatabaseConfig.require;
+
 public class MyPostgreSqlConnection
 {
     public static void main( String[] args )
@@ -19,8 +21,9 @@ public class MyPostgreSqlConnection
         // Hata meydana gelebilir, veri tabanina baglanirken
 
         try{
-            connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
-                                                        "postgres", "HAkan.01");  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
+            connection = DriverManager.getConnection(require("POSTGRES_URL"),
+                                               require("POSTGRES_USER"),
+                                               require("POSTGRES_PASSWORD"));  // Hangi veri tabanina gideceksek onu burada belirtmemiz gerekiyor
 
             statement = connection.createStatement(); // Statement olusturmamiz lazim
 
