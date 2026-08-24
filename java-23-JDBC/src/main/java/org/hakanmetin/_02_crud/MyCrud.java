@@ -3,6 +3,8 @@ package org.hakanmetin._02_crud;
 
 import java.sql.*;
 
+import static org.hakanmetin.config.DatabaseConfig.require;
+
 ///CRUD Create (Olustur), Read , Update , Delete
 public class MyCrud {
 
@@ -12,9 +14,9 @@ public class MyCrud {
     private ResultSet resultSet = null; //SQL Sorgularinin Sonuclari
 
 
-    private final String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
-    private final String DB_USER = "postgres";
-    private final String DB_PASSWORD = "HAkan.01";
+    private static final String DB_URL = require("POSTGRES_URL");
+    private static final String DB_USER = require("POSTGRES_USER");
+    private static final String DB_PASSWORD = require("POSTGRES_PASSWORD");
 
 
     private boolean isOpenConnection() {

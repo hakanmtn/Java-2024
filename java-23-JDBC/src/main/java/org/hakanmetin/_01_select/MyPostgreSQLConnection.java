@@ -2,6 +2,8 @@ package org.hakanmetin._01_select;
 
 import java.sql.*;
 
+import static org.hakanmetin.config.DatabaseConfig.require;
+
 public class MyPostgreSQLConnection {
 
     public static void main(String[] args) {
@@ -12,9 +14,9 @@ public class MyPostgreSQLConnection {
 
         try{  //Veri tabani olmayabilir, o yüzden TRY-CATCH
             //Baglanti icin
-            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
-                                               "postgres",
-                                               "HAkan.01"); //Hangi veri tabanina gideceksek
+            conn = DriverManager.getConnection(require("POSTGRES_URL"),
+                                               require("POSTGRES_USER"),
+                                               require("POSTGRES_PASSWORD")); //Hangi veri tabanina gideceksek
 
             statement = conn.createStatement();  //bu baglanti üzerinden sorgu olusturabiliriz
 
